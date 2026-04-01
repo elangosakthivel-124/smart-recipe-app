@@ -1,0 +1,10 @@
+fastapi==0.115.*
+uvicorn[standard]
+python-dotenv
+httpx
+pydantic==2.*
+sqlalchemy
+psycopg2-binary
+groq  # or openai
+python-jose[cryptography]
+passlib[bcrypt]
