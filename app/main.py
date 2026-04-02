@@ -130,3 +130,88 @@ def main():
 
 if __name__ == "__main__":
     main()
+import sqlite3
+
+DB_NAME = "library.db"
+
+def create_connection():
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        return conn
+    except sqlite3.Error as e:
+        print("❌ Connection error:", e)
+        return None
+
+
+# ➕ Add Book
+def add_book(title, author, publisher, year, isbn, copies):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO books (title, author, publisher, year_published, isbn, total_copies, available_copies)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (title, author, publisher, year, isbn, copies, copies))
+
+        conn.commit()
+        print("✅ Book added successfully")
+
+    except sqlite3.IntegrityError:
+        print("⚠️ ISBN already exists (must be unique)")
+    except sqlite3.Error as e:
+        print("❌ Error adding book:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 📖 View All Books
+def view_books():
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM books")
+        books = cursor.fetchall()
+
+        if not books:
+            print("📭 No books found")
+            return
+
+        print("\n📚 Book List:")
+        print("-" * 80)
+
+        for book in books:
+            print(f"""
+ID: {book[0]}
+Title: {book[1]}
+Author: {book[2]}
+Publisher: {book[3]}
+Year: {book[4]}
+ISBN: {book[5]}
+Total Copies: {book[6]}
+Available: {book[7]}
+""")
+        print("-" * 80)
+
+    except sqlite3.Error as e:
+        print("❌ Error fetching books:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🧪 Test Run
+def main():
+    print("=== Day 3: Book Management ===")
+
+    # Sample Data (you can change)
+    add_book("Python Basics", "John Doe", "ABC Pub", 2022, "ISBN001", 5)
+    add_book("Data Structures", "Jane Smith", "XYZ Pub", 2021, "ISBN002", 3)
+
+    view_books()
+
+
+if __name__ == "__main__":
+    main()
