@@ -215,3 +215,112 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+import sqlite3
+
+DB_NAME = "library.db"
+
+def create_connection():
+    try:
+        return sqlite3.connect(DB_NAME)
+    except sqlite3.Error as e:
+        print("❌ Connection error:", e)
+        return None
+
+
+# 🔍 Search by Title
+def search_by_title(title):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT * FROM books WHERE title LIKE ?
+        """, ('%' + title + '%',))
+
+        results = cursor.fetchall()
+        display_results(results)
+
+    except sqlite3.Error as e:
+        print("❌ Error searching by title:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🔍 Search by Author
+def search_by_author(author):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT * FROM books WHERE author LIKE ?
+        """, ('%' + author + '%',))
+
+        results = cursor.fetchall()
+        display_results(results)
+
+    except sqlite3.Error as e:
+        print("❌ Error searching by author:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🔍 Search by ISBN
+def search_by_isbn(isbn):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT * FROM books WHERE isbn = ?
+        """, (isbn,))
+
+        results = cursor.fetchall()
+        display_results(results)
+
+    except sqlite3.Error as e:
+        print("❌ Error searching by ISBN:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 📊 Display Function (Reusable)
+def display_results(books):
+    if not books:
+        print("📭 No matching books found")
+        return
+
+    print("\n📚 Search Results:")
+    print("-" * 80)
+
+    for book in books:
+        print(f"""
+ID: {book[0]}
+Title: {book[1]}
+Author: {book[2]}
+Publisher: {book[3]}
+Year: {book[4]}
+ISBN: {book[5]}
+Total Copies: {book[6]}
+Available: {book[7]}
+""")
+
+    print("-" * 80)
+
+
+# 🧪 Test Run
+def main():
+    print("=== Day 4: Search & Filter ===")
+
+    # Example searches
+    search_by_title("Python")
+    search_by_author("Jane")
+    search_by_isbn("ISBN001")
+
+
+if __name__ == "__main__":
+    main()
