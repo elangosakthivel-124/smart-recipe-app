@@ -324,3 +324,88 @@ def main():
 
 if __name__ == "__main__":
     main()
+    import sqlite3
+from datetime import date
+
+DB_NAME = "library.db"
+
+def create_connection():
+    try:
+        return sqlite3.connect(DB_NAME)
+    except sqlite3.Error as e:
+        print("❌ Connection error:", e)
+        return None
+
+
+# ➕ Add Member
+def add_member(name, email, phone):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        join_date = date.today().isoformat()
+
+        cursor.execute("""
+        INSERT INTO members (name, email, phone, join_date)
+        VALUES (?, ?, ?, ?)
+        """, (name, email, phone, join_date))
+
+        conn.commit()
+        print("✅ Member added successfully")
+
+    except sqlite3.IntegrityError:
+        print("⚠️ Email already exists (must be unique)")
+    except sqlite3.Error as e:
+        print("❌ Error adding member:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 👥 View Members
+def view_members():
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM members")
+        members = cursor.fetchall()
+
+        if not members:
+            print("📭 No members found")
+            return
+
+        print("\n👥 Member List:")
+        print("-" * 70)
+
+        for m in members:
+            print(f"""
+Member ID: {m[0]}
+Name: {m[1]}
+Email: {m[2]}
+Phone: {m[3]}
+Join Date: {m[4]}
+""")
+
+        print("-" * 70)
+
+    except sqlite3.Error as e:
+        print("❌ Error fetching members:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🧪 Test Run
+def main():
+    print("=== Day 5: Member Management ===")
+
+    # Sample Data
+    add_member("Elango Sakthivel", "elango@email.com", "9876543210")
+    add_member("Arun Kumar", "arun@email.com", "9123456780")
+
+    view_members()
+
+
+if __name__ == "__main__":
+    main()
