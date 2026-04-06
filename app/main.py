@@ -409,3 +409,99 @@ def main():
 
 if __name__ == "__main__":
     main()
+    import sqlite3
+from datetime import date, timedelta
+
+DB_NAME = "library.db"
+
+def create_connection():
+    try:
+        return sqlite3.connect(DB_NAME)
+    except sqlite3.Error as e:
+        print("❌ Connection error:", e)
+        return None
+
+
+# 📌 Check Book Availability
+def get_book(book_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM books WHERE book_id = ?", (book_id,))
+    book = cursor.fetchone()
+
+    conn.close()
+    return book
+
+
+# 📌 Check Member Exists
+def get_member(member_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM members WHERE member_id = ?", (member_id,))
+    member = cursor.fetchone()
+
+    conn.close()
+    return member
+
+
+# 🔄 Issue Book
+def issue_book(book_id, member_id):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Validate Book
+        book = get_book(book_id)
+        if not book:
+            print("❌ Book not found")
+            return
+
+        if book[7] <= 0:
+            print("⚠️ No copies available")
+            return
+
+        # Validate Member
+        member = get_member(member_id)
+        if not member:
+            print("❌ Member not found")
+            return
+
+        issue_date = date.today()
+        due_date = issue_date + timedelta(days=14)
+
+        # Insert issue record
+        cursor.execute("""
+        INSERT INTO issued_books (book_id, member_id, issue_date, due_date)
+        VALUES (?, ?, ?, ?)
+        """, (book_id, member_id, issue_date, due_date))
+
+        # Update available copies
+        cursor.execute("""
+        UPDATE books
+        SET available_copies = available_copies - 1
+        WHERE book_id = ?
+        """, (book_id,))
+
+        conn.commit()
+        print("✅ Book issued successfully")
+        print(f"📅 Due Date: {due_date}")
+
+    except sqlite3.Error as e:
+        print("❌ Error issuing book:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🧪 Test Run
+def main():
+    print("=== Day 6: Issue Book ===")
+
+    # Example (ensure IDs exist in your DB)
+    issue_book(1, 1)
+
+
+if __name__ == "__main__":
+    main()
