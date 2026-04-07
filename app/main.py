@@ -502,6 +502,199 @@ def main():
     # Example (ensure IDs exist in your DB)
     issue_book(1, 1)
 
+import sqlite3
+from datetime import date
+
+DB_NAME = "library.db"
+FINE_PER_DAY = 5  # ₹5 per day
+
+
+def create_connection():
+    try:
+        return sqlite3.connect(DB_NAME)
+    except sqlite3.Error as e:
+        print("❌ Connection error:", e)
+        return None
+
+
+# 📌 Get Issued Book Record
+def get_issue(issue_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM issued_books WHERE issue_id = ?", (issue_id,))
+    issue = cursor.fetchone()
+
+    conn.close()
+    return issue
+
+
+# 💰 Calculate Fine
+def calculate_fine(due_date_str):
+    due_date = date.fromisoformat(due_date_str)
+    today = date.today()
+
+    delay_days = (today - due_date).days
+
+    if delay_days > 0:
+        return delay_days * FINE_PER_DAY
+    return 0
+
+
+# 📝 Add Fine Record
+def add_fine(issue_id, amount):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Check if fine already exists
+        cursor.execute("SELECT * FROM fines WHERE issue_id = ?", (issue_id,))
+        existing = cursor.fetchone()
+
+        if existing:
+            print("⚠️ Fine already recorded")
+            return
+
+        cursor.execute("""
+        INSERT INTO fines (issue_id, amount, paid)
+        VALUES (?, ?, 0)
+        """, (issue_id, amount))
+
+        conn.commit()
+        print(f"💰 Fine added: ₹{amount}")
+
+    except sqlite3.Error as e:
+        print("❌ Error adding fine:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🔍 Check and Apply Fine
+def check_and_apply_fine(issue_id):
+    issue = get_issue(issue_id)
+
+    if not issue:
+        print("❌ Issue record not found")
+        return
+
+    due_date = issue[4]  # due_date column
+
+    fine_amount = calculate_fine(due_date)
+
+    if fine_amount > 0:
+        add_fine(issue_id, fine_amount)
+    else:
+        print("✅ No fine (book returned on time or not overdue)")
+
+
+# 🧪 Test Run
+def main():
+    print("=== Day 8: Fine Calculation ===")
+
+    # Example issue_id (must exist in DB)
+    check_and_apply_fine(1)
+
+
+if __name__ == "__main__":
+    main()
+
+
+if __name__ == "__main__":
+    main()
+import sqlite3
+from datetime import date
+
+DB_NAME = "library.db"
+FINE_PER_DAY = 5  # ₹5 per day
+
+
+def create_connection():
+    try:
+        return sqlite3.connect(DB_NAME)
+    except sqlite3.Error as e:
+        print("❌ Connection error:", e)
+        return None
+
+
+# 📌 Get Issued Book Record
+def get_issue(issue_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM issued_books WHERE issue_id = ?", (issue_id,))
+    issue = cursor.fetchone()
+
+    conn.close()
+    return issue
+
+
+# 💰 Calculate Fine
+def calculate_fine(due_date_str):
+    due_date = date.fromisoformat(due_date_str)
+    today = date.today()
+
+    delay_days = (today - due_date).days
+
+    if delay_days > 0:
+        return delay_days * FINE_PER_DAY
+    return 0
+
+
+# 📝 Add Fine Record
+def add_fine(issue_id, amount):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Check if fine already exists
+        cursor.execute("SELECT * FROM fines WHERE issue_id = ?", (issue_id,))
+        existing = cursor.fetchone()
+
+        if existing:
+            print("⚠️ Fine already recorded")
+            return
+
+        cursor.execute("""
+        INSERT INTO fines (issue_id, amount, paid)
+        VALUES (?, ?, 0)
+        """, (issue_id, amount))
+
+        conn.commit()
+        print(f"💰 Fine added: ₹{amount}")
+
+    except sqlite3.Error as e:
+        print("❌ Error adding fine:", e)
+    finally:
+        if conn:
+            conn.close()
+
+
+# 🔍 Check and Apply Fine
+def check_and_apply_fine(issue_id):
+    issue = get_issue(issue_id)
+
+    if not issue:
+        print("❌ Issue record not found")
+        return
+
+    due_date = issue[4]  # due_date column
+
+    fine_amount = calculate_fine(due_date)
+
+    if fine_amount > 0:
+        add_fine(issue_id, fine_amount)
+    else:
+        print("✅ No fine (book returned on time or not overdue)")
+
+
+# 🧪 Test Run
+def main():
+    print("=== Day 8: Fine Calculation ===")
+
+    # Example issue_id (must exist in DB)
+    check_and_apply_fine(1)
+
 
 if __name__ == "__main__":
     main()
